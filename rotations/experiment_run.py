@@ -15,20 +15,13 @@ Block 2 -- entanglement ablation (RY encoding fixed):
     RY(x) + [entanglement] + RY(x)
     Total: 3 configs.
 
-Block 2 (clean) -- NOTE: currently defines the same 3 entanglement levels
-    as Block 2 above (only the label/config_id differ), so it produces
-    numerically identical rows to Block 2 for the same (dataset, seed).
-    Kept as-is pending confirmation -- see project notes.
-    Total: 3 configs.
 
-Grand total: 18 configs (see ALL_CONFIGS) -> len(EXPERIMENTS) jobs
+Grand total: 15 configs (see ALL_CONFIGS) -> len(EXPERIMENTS) jobs
 (encoding-only configs skip seeds > 0 and write a single row per dataset).
 
-Usage (SLURM array 1..len(EXPERIMENTS)):
-    python exp2_main.py <job_index>
 
 Output:
-    results_exp2/exp2_results.csv  (one row per seed per config per dataset)
+    results_exp2/exp2_results.csv  
 """
 
 import csv
@@ -42,6 +35,7 @@ from sklearn.datasets import make_circles, make_moons
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 
+from loader import load_dataset
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
@@ -123,55 +117,6 @@ def _build_experiments():
 
 
 EXPERIMENTS = _build_experiments()
-
-
-# ---------------------------------------------------------------------------
-# Datasets
-# ---------------------------------------------------------------------------
-
-def _make_checkerboard(seed=42):
-    rng = np.random.RandomState(seed)
-    x = rng.uniform(-2, 2, (N_SAMPLES, 2))
-    y = ((np.floor(x[:, 0]) + np.floor(x[:, 1])) % 2).astype(int)
-    return x, y
-
-
-def _make_moons_ds(seed=42):
-    return make_moons(n_samples=N_SAMPLES, noise=0.1, random_state=seed)
-
-
-def _make_circles_ds(seed=42):
-    return make_circles(
-        n_samples=N_SAMPLES, noise=0.15, factor=0.4, random_state=seed
-    )
-
-
-def _make_xor(seed=42):
-    rng = np.random.RandomState(seed)
-    n = N_SAMPLES // 4
-    x = np.vstack([
-        rng.randn(n, 2) * 0.3 + [1, 1],
-        rng.randn(n, 2) * 0.3 + [-1, -1],
-        rng.randn(n, 2) * 0.3 + [1, -1],
-        rng.randn(n, 2) * 0.3 + [-1, 1],
-    ])
-    y = np.array([0] * n + [0] * n + [1] * n + [1] * n)
-    return x, y
-
-
-def load_dataset(name):
-    """Return (X, y) for one of: moons, circles, xor, checkerboard."""
-    loaders = {
-        "moons": _make_moons_ds,
-        "circles": _make_circles_ds,
-        "xor": _make_xor,
-        "checkerboard": _make_checkerboard,
-    }
-    try:
-        return loaders[name]()
-    except KeyError:
-        raise ValueError(f"Unknown dataset: {name}")
-
 
 # ---------------------------------------------------------------------------
 # Circuit builders
@@ -275,7 +220,11 @@ def compute_kernels(x_train, x_test, build_fn, params):
 
 def run_one(cfg, dataset_name, seed):
     """Run one (config, dataset, seed) experiment and return its result row."""
-    x, y = load_dataset(dataset_name)
+    X, y = load_dataset(
+        dataset_name,
+        n_samples=N_SAMPLES,
+        n_qubits=N_QUBITS,
+    )
     x_train, x_test, y_train, y_test = train_test_split(
         x, y, test_size=TEST_SIZE, random_state=RANDOM_STATE
     )
