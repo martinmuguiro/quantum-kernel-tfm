@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 
 from circuits import CIRCUITS, build_feature_map
-from data import DATASETS, load_dataset
+from loader import load_dataset
 
 
 OUTPUT_DIR = "embedding_results"
