@@ -31,7 +31,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.svm import SVC
 
 from circuits import CIRCUITS, build_feature_map
-from data import DATASETS, load_dataset
+from loader import load_dataset
 
 
 OUTPUT_DIR = "kernel_results"
@@ -214,7 +214,11 @@ def run_job(job):
         flush=True,
     )
 
-    X, y = load_dataset(dataset, n_samples=N_SAMPLES)
+    X, y = load_dataset(
+        dataset,
+        n_samples=400,
+        n_qubits=n_qubits,
+    )
 
     X_train, X_test, y_train, y_test = train_test_split(
         X,
