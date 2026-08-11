@@ -156,7 +156,11 @@ def run_job(job):
         flush=True,
     )
 
-    X, y = load_dataset(dataset, n_samples=N_SAMPLES)
+    X, y = load_dataset(
+        dataset,
+        n_samples=400,
+        n_qubits=n_qubits,
+    )
 
     X_train, _, y_train, _ = train_test_split(
         X,
